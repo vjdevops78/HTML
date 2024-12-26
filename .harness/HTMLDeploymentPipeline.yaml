@@ -48,6 +48,6 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      docker tag $(echo "${{output.IMAGE_ID}}") trialvj.jfrog.io/docker-html-local/my-html-app:latest 
+                      docker tag "$(echo "${{output.IMAGE_ID}}")" trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
