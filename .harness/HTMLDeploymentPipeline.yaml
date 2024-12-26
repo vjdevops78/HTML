@@ -49,6 +49,7 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      docker login trialvj.jfrog.io
                       docker tag my-html-app:latest trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
