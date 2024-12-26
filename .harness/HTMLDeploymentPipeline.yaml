@@ -32,7 +32,7 @@ pipeline:
             steps:
               - step:
                   type: BuildAndPushDockerRegistry
-                  name: BuildAndPush-jFrog-DockerRegistry_1
+                  name: BuildAndPush_jFrog_DockerRegistry_1
                   identifier: BuildAndPushjFrogDockerRegistry_1
                   spec:
                     connectorRef: Jfrog_Docker_Registry
