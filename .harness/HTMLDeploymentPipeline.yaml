@@ -55,7 +55,7 @@ pipeline:
                       JFROG_USERNAME=<+secrets.getValue("jFrog")> 
                       JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
 
-                      docker login -u $JFROG_USERNAME -p $JFROG_PASSWORD trialvj.jfrog.io
+                      docker login -u $JFROG_USERNAME trialvj.jfrog.io
                       docker tag my-html-app:latest trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
