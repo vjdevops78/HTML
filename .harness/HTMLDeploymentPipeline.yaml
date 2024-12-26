@@ -37,12 +37,35 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      #set -e 
+                      # Build Docker image and retrieve IMAGE_ID 
+                      #docker build -t my-html-app . 
+                      #IMAGE_ID=$(docker images -q my-html-app:latest) 
+                      #echo "IMAGE_ID: $IMAGE_ID" echo "export IMAGE_ID=$IMAGE_ID" >> ~/.bashrc
+
                       set -e 
                       # Build Docker image and retrieve IMAGE_ID 
                       docker build -t my-html-app . 
                       IMAGE_ID=$(docker images -q my-html-app:latest) 
-                      echo "IMAGE_ID: $IMAGE_ID" echo "export IMAGE_ID=$IMAGE_ID" >> ~/.bashrc
+                      echo "IMAGE_ID=$IMAGE_ID" > image-id.txt 
+                      # Ensure IMAGE_ID is set 
+                      if [ -z "$IMAGE_ID" ]; then 
+                      echo "Error: IMAGE_ID is not set or is empty." 
+                      exit 1 
+                      fi 
+                      echo "IMAGE_ID: $IMAGE_ID"
                   description: step to build docker image
+              - step:
+                  type: Run
+                  name: Store_IMAGE_ID
+                  identifier: Store_IMAGE_ID
+                  spec:
+                    shell: Sh
+                    command: |-
+                      set -e
+                      # Export the IMAGE_ID from the previous step
+                      export IMAGE_ID=$(cat image-id.txt | grep IMAGE_ID | cut -d'=' -f2)
+                      echo "export IMAGE_ID=$IMAGE_ID" >> ~/.bashrc
               - step:
                   type: Run
                   name: PushToArtifactory
@@ -51,6 +74,10 @@ pipeline:
                     shell: Sh
                     command: |-
                       # Debug: Print the IMAGE_ID (ensure it's set correctly)
+                      echo "IMAGE_ID: $IMAGE_ID"
+
+                      # Ensure IMAGE_ID is set correctly 
+                      IMAGE_ID=$(cat image-id.txt | grep IMAGE_ID | cut -d'=' -f2) 
                       echo "IMAGE_ID: $IMAGE_ID"
                       # Check if IMAGE_ID is set and not empty
                       if [ -z "$IMAGE_ID" ]; then
