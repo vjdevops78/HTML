@@ -37,10 +37,11 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      docker build -t my-html-app:latest .
-                      #IMAGE_ID=$(docker images -q my-html-app:latest)
-                      IMAGE_ID=$(docker inspect --format='{{.Id}}' my-html-app:latest)
-                      echo "::set-output name=IMAGE_ID::$IMAGE_ID"
+                      set -e 
+                      # Build Docker image and retrieve IMAGE_ID 
+                      docker build -t my-html-app . 
+                      IMAGE_ID=$(docker images -q my-html-app:latest) 
+                      echo "IMAGE_ID: $IMAGE_ID" echo "export IMAGE_ID=$IMAGE_ID" >> ~/.bashrc
                   description: step to build docker image
               - step:
                   type: Run
@@ -49,6 +50,13 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      # Debug: Print the IMAGE_ID (ensure it's set correctly)
+                      echo "IMAGE_ID: $IMAGE_ID"
+                      # Check if IMAGE_ID is set and not empty
+                      if [ -z "$IMAGE_ID" ]; then
+                        echo "Error: IMAGE_ID is not set or is empty."
+                        exit 1
+                      fi
                       # Retrieve secrets from Harness 
                       JFROG_USERNAME=<+secrets.getValue("jFrog")> 
                       JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
