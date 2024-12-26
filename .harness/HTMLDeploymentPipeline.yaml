@@ -39,7 +39,7 @@ pipeline:
                     command: |-
                       docker build -t my-html-app:latest .
                       #IMAGE_ID=$(docker images -q my-html-app:latest)
-                      IMAGE_ID=$(docker inspect --format='{{.Id}}' my-html-app:latest)
+                      #IMAGE_ID=$(docker inspect --format='{{.Id}}' my-html-app:latest)
                       #echo "::set-output name=IMAGE_ID::$IMAGE_ID"
                   description: step to build docker image
               - step:
@@ -49,6 +49,6 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      docker tag $IMAGE_ID trialvj.jfrog.io/docker-html-local/my-html-app:latest
+                      docker tag my-html-app:latest trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
