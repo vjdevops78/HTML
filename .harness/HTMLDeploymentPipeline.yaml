@@ -39,8 +39,8 @@ pipeline:
                     command: |-
                       docker build -t my-html-app:latest .
                       #IMAGE_ID=$(docker images -q my-html-app:latest)
-                      #IMAGE_ID=$(docker inspect --format='{{.Id}}' my-html-app:latest)
-                      #echo "::set-output name=IMAGE_ID::$IMAGE_ID"
+                      IMAGE_ID=$(docker inspect --format='{{.Id}}' my-html-app:latest)
+                      echo "::set-output name=IMAGE_ID::$IMAGE_ID"
                   description: step to build docker image
               - step:
                   type: Run
@@ -55,6 +55,6 @@ pipeline:
                       ARTIFACTORY_TOKEN=<+secrets.getValue("ARTIFACTORY_TOKEN")>
                       echo $ARTIFACTORY_TOKEN | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
                       #docker login -u vjdevops@hotmail.com -p $ARTIFACTORY_TOKEN trialvj.jfrog.io
-                      docker tag my-html-app:latest trialvj.jfrog.io/docker-html-local/my-html-app:latest
+                      docker tag my-html-app:$IMAGE_ID trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
