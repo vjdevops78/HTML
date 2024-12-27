@@ -38,11 +38,14 @@ pipeline:
                     shell: Sh
                     command: |-
                       set -e
-                      docker build -t my-html-app:$(docker build -t temp-image . | awk '/Successfully built/ {print $3}') .
-                      echo "IMAGE_ID: $IMAGE_ID" 
+                      export IMAGE_NAME=my-html-app 
+                      docker build -t $IMAGE_NAME . 
+                      IMAGE_ID=$(docker images -q $IMAGE_NAME:latest)
+                      echo "IMAGE_ID: $IMAGE_ID"
                       JFROG_USERNAME=<+secrets.getValue("jFrog")>
                       JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
                       ARTIFACTORY_TOKEN=<+secrets.getValue("ARTIFACTORY_TOKEN")>
                       echo "$ARTIFACTORY_TOKEN" | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
-                      docker push trialvj.jfrog.io/docker-html-local/my-html-app:$IMAGE_ID
+                      docker tag $IMAGE_NAME trialvj.jfrog.io/docker-html-local/my-html-app:latest
+                      docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: Build and push docker image to jFrog Artifactory
