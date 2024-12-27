@@ -57,6 +57,13 @@ pipeline:
                   description: step to build docker image
               - step:
                   type: Run
+                  name: List Docker Images
+                  identifier: List_Docker_Images
+                  spec:
+                    shell: Sh
+                    command: docker images
+              - step:
+                  type: Run
                   name: Store_IMAGE_ID
                   identifier: Store_IMAGE_ID
                   spec:
