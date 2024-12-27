@@ -28,7 +28,37 @@ pipeline:
                         type: Inline
                         spec:
                           templateBody: |
+                            AWSTemplateFormatVersion: '2010-09-09'
                             Resources:
+                              # VPC
+                              MyVpc:
+                                Type: 'AWS::EC2::VPC'
+                                Properties:
+                                  CidrBlock: '10.0.0.0/16'
+                                  EnableDnsSupport: 'true'
+                                  EnableDnsHostnames: 'true'
+
+                              # Public Subnet
+                              MyPublicSubnet:
+                                Type: 'AWS::EC2::Subnet'
+                                Properties:
+                                  VpcId: !Ref MyVpc
+                                  CidrBlock: '10.0.0.0/24'
+                                  MapPublicIpOnLaunch: 'true'
+
+                              # Security Group for Fargate Tasks
+                              FargateSecurityGroup:
+                                Type: 'AWS::EC2::SecurityGroup'
+                                Properties:
+                                  GroupDescription: 'Security Group for Fargate Tasks'
+                                  VpcId: !Ref MyVpc
+                                  SecurityGroupIngress:
+                                    - IpProtocol: 'tcp'
+                                      FromPort: '80'
+                                      ToPort: '80'
+                                      # Update this with specific IP addresses or security groups for better security
+                                      CidrIp: '0.0.0.0/0'  # Replace with specific allowed IP ranges
+
                               # IAM Role for Fargate Tasks
                               FargateTaskExecutionRole:
                                 Type: 'AWS::IAM::Role'
@@ -68,5 +98,31 @@ pipeline:
                                       PortMappings:
                                         - ContainerPort: 80
                                           HostPort: 80
+
+                              # ECS Service
+                              MyEcsService:
+                                Type: 'AWS::ECS::Service'
+                                Properties:
+                                  Cluster: !Ref MyEcsCluster
+                                  DesiredCount: 1
+                                  LaunchType: FARGATE
+                                  TaskDefinition: !Ref MyTaskDefinition
+                                  NetworkConfiguration:
+                                    AwsvpcConfiguration:
+                                      Subnets:
+                                        - !Ref MyPublicSubnet
+                                      SecurityGroups:
+                                        - !Ref FargateSecurityGroup
+                                      AssignPublicIp: ENABLED
+
+                            Outputs:
+                              VpcId:
+                                Value: !Ref MyVpc
+                              SubnetId:
+                                Value: !Ref MyPublicSubnet
+                              ClusterArn:
+                                Value: !GetAtt MyEcsCluster.Arn
+                              TaskDefinitionArn:
+                                Value: !GetAtt MyTaskDefinition.Arn
                       roleArn: ""
                   timeout: 10m
