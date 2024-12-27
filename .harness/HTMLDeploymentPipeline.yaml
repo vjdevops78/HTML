@@ -38,7 +38,7 @@ pipeline:
                     shell: Sh
                     command: |-
                       set -e
-                      IMAGE_ID=$(docker build -t my-html-app:$IMAGE_ID . | awk '/Successfully built/ {print $3}')
+                      docker build -t my-html-app:$(docker build -t temp-image . | awk '/Successfully built/ {print $3}') .
                       echo "IMAGE_ID: $IMAGE_ID" 
                       JFROG_USERNAME=<+secrets.getValue("jFrog")>
                       JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
