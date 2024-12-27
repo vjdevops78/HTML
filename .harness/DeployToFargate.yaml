@@ -27,43 +27,8 @@ pipeline:
                       templateFile:
                         type: Inline
                         spec:
-                          templateBody: |-
+                          templateBody: |
                             Resources:
-                              # VPC
-                              MyVpc:
-                                Type: 'AWS::EC2::VPC'
-                                Properties:
-                                  CidrBlock: '10.0.0.0/16'
-                                  EnableDnsSupport: 'true'
-                                  EnableDnsHostnames: 'true'
-
-                              # Public Subnet
-                              MyPublicSubnet:
-                                Type: 'AWS::EC2::Subnet'
-                                Properties:
-                                  VpcId: !Ref MyVpc
-                                  CidrBlock: '10.0.0.0/24'
-                                  MapPublicIpOnLaunch: 'true'
-
-                              # Security Group for Fargate Tasks (Updated rule for better security)
-                              FargateSecurityGroup:
-                                Type: 'AWS::EC2::SecurityGroup'
-                                Properties:
-                                  GroupDescription: 'Security Group for Fargate Tasks'
-                                  VpcId: !Ref MyVpc
-                                  SecurityGroupIngress:
-                                    - IpProtocol: 'tcp'
-                                      FromPort: '80'
-                                      ToPort: '80'
-                                      # Update this with specific IP addresses or security groups for better security
-                                      CidrIp: '0.0.0.0/0'  # Replace with specific allowed IP ranges
-
-                              # ECS Cluster
-                              MyEcsCluster:
-                                Type: 'AWS::ECS::Cluster'
-                                Properties:
-                                  ClusterName: 'my-fargate-cluster'
-
                               # IAM Role for Fargate Tasks
                               FargateTaskExecutionRole:
                                 Type: 'AWS::IAM::Role'
@@ -78,12 +43,23 @@ pipeline:
                                   ManagedPolicyArns:
                                     - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
 
+                              # ECS Cluster
+                              MyEcsCluster:
+                                Type: 'AWS::ECS::Cluster'
+                                Properties:
+                                  ClusterName: my-fargate-cluster
+
                               # ECS Task Definition
                               MyTaskDefinition:
                                 Type: 'AWS::ECS::TaskDefinition'
                                 Properties:
                                   Family: 'my-fargate-task'
                                   NetworkMode: 'awsvpc'
+                                  RequiresCompatibilities:
+                                    - FARGATE
+                                  Cpu: '256'
+                                  Memory: '512'
+                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn
                                   ContainerDefinitions:
                                     - Name: 'my-app-container'
                                       Image: 'trialvj.jfrog.io/docker-html-local/my-html-app:latest'
@@ -92,21 +68,5 @@ pipeline:
                                       PortMappings:
                                         - ContainerPort: 80
                                           HostPort: 80
-                                  RequiresCompatibilities:
-                                    - FARGATE
-                                  Memory: '512'
-                                  Cpu: '256'
-                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn
-
-
-                            Outputs:
-                              VpcId:
-                                Value: !Ref MyVpc
-                              SubnetId:
-                                Value: !Ref MyPublicSubnet
-                              ClusterArn:
-                                Value: !GetAtt MyEcsCluster.Arn
-                              TaskDefinitionArn:
-                                Value: !GetAtt MyTaskDefinition.Arn
                       roleArn: ""
                   timeout: 10m
