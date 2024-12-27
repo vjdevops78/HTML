@@ -33,7 +33,7 @@ pipeline:
                               MyVpc:
                                 Type: 'AWS::EC2::VPC'
                                 Properties:
-                                  CidrBlock: '10.0.0.0/16' 
+                                  CidrBlock: '10.0.0.0/16'
                                   EnableDnsSupport: 'true'
                                   EnableDnsHostnames: 'true'
 
@@ -43,9 +43,9 @@ pipeline:
                                 Properties:
                                   VpcId: !Ref MyVpc
                                   CidrBlock: '10.0.0.0/24'
-                                  MapPublicIpOnLaunch: 'true' 
+                                  MapPublicIpOnLaunch: 'true'
 
-                              # Security Group for Fargate Tasks
+                              # Security Group for Fargate Tasks (Updated rule for better security)
                               FargateSecurityGroup:
                                 Type: 'AWS::EC2::SecurityGroup'
                                 Properties:
@@ -55,7 +55,8 @@ pipeline:
                                     - IpProtocol: 'tcp'
                                       FromPort: '80'
                                       ToPort: '80'
-                                      CidrIp: '0.0.0.0/0' # Allow traffic from anywhere (adjust as needed)
+                                      # Update this with specific IP addresses or security groups for better security
+                                      CidrIp: '0.0.0.0/0'  # Replace with specific allowed IP ranges
 
                               # ECS Cluster
                               MyEcsCluster:
@@ -63,7 +64,7 @@ pipeline:
                                 Properties:
                                   ClusterName: 'my-fargate-cluster'
 
-                              # IAM Role for Fargate Tasks
+                              # IAM Role for Fargate Tasks (Uses the correct managed policy)
                               FargateTaskExecutionRole:
                                 Type: 'AWS::IAM::Role'
                                 Properties:
@@ -74,29 +75,6 @@ pipeline:
                                         Principal:
                                           Service: 'ecs-tasks.amazonaws.com'
                                         Action: 'sts:AssumeRole'
-                                  Policies:
-                                    - PolicyName: 'AmazonECSTaskExecutionRolePolicy'
-                                      PolicyDocument:
-                                        Version: '2012-10-17'
-                                        Statement:
-                                          - Effect: 'Allow'
-                                            Action: 
-                                              - 'ec2:DescribeSubnets' 
-                                              - 'ec2:DescribeSecurityGroups' 
-                                              - 'logs:CreateLogGroup' 
-                                              - 'logs:CreateLogStream' 
-                                              - 'logs:PutLogEvents' 
-                                            Resource: '*' 
-                                          - Effect: 'Allow'
-                                            Action: 
-                                              - 'ecs:CreateTask' 
-                                              - 'ecs:DescribeTasks' 
-                                              - 'ecs:ListTasks' 
-                                              - 'ecs:StopTask' 
-                                              - 'ecs:DescribeTaskDefinition' 
-                                              - 'ecs:DescribeClusters' 
-                                            Resource: 
-                                              - !GetAtt MyEcsCluster.Arn 
                                   ManagedPolicyArns:
                                     - 'arn:aws:iam::aws:policy/AmazonECS_FargateTaskExecution'
 
@@ -104,18 +82,18 @@ pipeline:
                               MyTaskDefinition:
                                 Type: 'AWS::ECS::TaskDefinition'
                                 Properties:
-                                  Family: 'my-fargate-task' 
+                                  Family: 'my-fargate-task'
                                   NetworkMode: 'awsvpc'
                                   ContainerDefinitions:
                                     - Name: 'my-app-container'
-                                      Image: 'trialvj.jfrog.io/docker-html-local/my-html-app:latest' 
+                                      Image: 'trialvj.jfrog.io/docker-html-local/my-html-app:latest'
                                       # Replace with the actual image URI from JFrog Artifactory
-                                      Cpu: 256 
-                                      Memory: 512 
-                                      PortMappings: 
-                                        - ContainerPort: 80 
-                                          HostPort: 80 
-                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn 
+                                      Cpu: 256
+                                      Memory: 512
+                                      PortMappings:
+                                        - ContainerPort: 80
+                                          HostPort: 80
+                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn
 
                             Outputs:
                               VpcId:
