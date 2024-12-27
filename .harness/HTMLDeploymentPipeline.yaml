@@ -82,16 +82,25 @@ pipeline:
                       ARTIFACTORY_TOKEN=<+secrets.getValue("ARTIFACTORY_TOKEN")>
                       echo $ARTIFACTORY_TOKEN | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
 
-                      # Ensure IMAGE_ID is set correctly 
-                      IMAGE_ID=$(cat image-id.txt | grep IMAGE_ID | cut -d'=' -f2) 
+                      # Ensure IMAGE_ID is set correctly
+                      IMAGE_ID=$(cat image-id.txt | grep IMAGE_ID | cut -d'=' -f2 | tr -d '[:space:]')  # Remove whitespace
                       echo "IMAGE_ID: $IMAGE_ID"
+
                       # Check if IMAGE_ID is set and not empty
                       if [ -z "$IMAGE_ID" ]; then
                         echo "Error: IMAGE_ID is not set or is empty."
                         exit 1
                       fi
 
-                      #docker login -u vjdevops@hotmail.com -p $ARTIFACTORY_TOKEN trialvj.jfrog.io
+                      # Verify image existence
+                      if ! docker images | grep -q "my-html-app:$IMAGE_ID"; then
+                        echo "Error: Image 'my-html-app:$IMAGE_ID' not found. Check build process."
+                        exit 1
+                      fi
+
+                      # Login to JFrog using access token (avoid storing password)
+                      echo "$ARTIFACTORY_TOKEN" | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
+
                       docker tag "my-html-app:$IMAGE_ID" trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
                   description: push built docker image to artifactory
