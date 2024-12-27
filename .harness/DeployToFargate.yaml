@@ -125,4 +125,4 @@ pipeline:
                               TaskDefinitionArn:
                                 Value: !GetAtt MyTaskDefinition.Arn
                       roleArn: ""
-                  timeout: 10m
+                  timeout: 30m
