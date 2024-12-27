@@ -37,22 +37,26 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      # Set strict error handling (exit script on any non-zero exit code)
                       set -e
-                      #export IMAGE_NAME=my-html-app 
-                      #docker build -t $IMAGE_NAME . 
-                      #IMAGE_ID=$(docker images -q $IMAGE_NAME:latest)
-                      #echo "IMAGE_ID: $IMAGE_ID"
 
+                      # Construct the semantic version from stage variables
                       VERSION=<+stage.variables.get("MAJOR_VERSION")>.<+stage.variables.get("MINOR_VERSION")>.<+stage.variables.get("PATCH_VERSION")>
+                      # Build the Docker image with the semantic version tag
                       docker build -t my-html-app:$VERSION .
 
+                      # Retrieve JFrog credentials from secrets manager
                       JFROG_USERNAME=<+secrets.getValue("jFrog")>
                       JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
                       ARTIFACTORY_TOKEN=<+secrets.getValue("ARTIFACTORY_TOKEN")>
+
+                      # Login to JFrog Artifactory using a secret token (avoid storing username/password in plain text)
                       echo "$ARTIFACTORY_TOKEN" | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
 
+                      # Tag the built image for pushing to JFrog Artifactory
                       docker tag my-html-app:$VERSION trialvj.jfrog.io/docker-html-local/my-html-app:$VERSION
-                      #docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
+
+                      # Push the image to JFrog Artifactory repository
                       docker push trialvj.jfrog.io/docker-html-local/my-html-app:$VERSION
                   description: Build and push docker image to jFrog Artifactory
         variables:
