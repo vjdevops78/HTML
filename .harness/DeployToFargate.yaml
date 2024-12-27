@@ -1,0 +1,130 @@
+pipeline:
+  name: DeployToFargate
+  identifier: DeployToFargate
+  projectIdentifier: default_project
+  orgIdentifier: default
+  description: Deploy Docker image from JFrog to AWS Fargate
+  tags: {}
+  stages:
+    - stage:
+        name: DeployToFargate
+        identifier: DeployToFargate
+        description: Provision AWS resources using CloudFormation
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: CreateStack
+                  name: CreateStack_1
+                  identifier: CreateStack_1
+                  spec:
+                    provisionerIdentifier: AWSProvisioner
+                    configuration:
+                      stackName: HTMLStake
+                      connectorRef: AWS
+                      region: us-east-1
+                      templateFile:
+                        type: Inline
+                        spec:
+                          templateBody: |-
+                            Resources:
+                              # VPC
+                              MyVpc:
+                                Type: 'AWS::EC2::VPC'
+                                Properties:
+                                  CidrBlock: '10.0.0.0/16' 
+                                  EnableDnsSupport: 'true'
+                                  EnableDnsHostnames: 'true'
+
+                              # Public Subnet
+                              MyPublicSubnet:
+                                Type: 'AWS::EC2::Subnet'
+                                Properties:
+                                  VpcId: !Ref MyVpc
+                                  CidrBlock: '10.0.0.0/24'
+                                  MapPublicIpOnLaunch: 'true' 
+
+                              # Security Group for Fargate Tasks
+                              FargateSecurityGroup:
+                                Type: 'AWS::EC2::SecurityGroup'
+                                Properties:
+                                  GroupDescription: 'Security Group for Fargate Tasks'
+                                  VpcId: !Ref MyVpc
+                                  SecurityGroupIngress:
+                                    - IpProtocol: 'tcp'
+                                      FromPort: '80'
+                                      ToPort: '80'
+                                      CidrIp: '0.0.0.0/0' # Allow traffic from anywhere (adjust as needed)
+
+                              # ECS Cluster
+                              MyEcsCluster:
+                                Type: 'AWS::ECS::Cluster'
+                                Properties:
+                                  ClusterName: 'my-fargate-cluster'
+
+                              # IAM Role for Fargate Tasks
+                              FargateTaskExecutionRole:
+                                Type: 'AWS::IAM::Role'
+                                Properties:
+                                  AssumeRolePolicyDocument:
+                                    Version: '2012-10-17'
+                                    Statement:
+                                      - Effect: 'Allow'
+                                        Principal:
+                                          Service: 'ecs-tasks.amazonaws.com'
+                                        Action: 'sts:AssumeRole'
+                                  Policies:
+                                    - PolicyName: 'FargateTaskExecutionPolicy'
+                                      PolicyDocument:
+                                        Version: '2012-10-17'
+                                        Statement:
+                                          - Effect: 'Allow'
+                                            Action: 
+                                              - 'ec2:DescribeSubnets' 
+                                              - 'ec2:DescribeSecurityGroups' 
+                                              - 'logs:CreateLogGroup' 
+                                              - 'logs:CreateLogStream' 
+                                              - 'logs:PutLogEvents' 
+                                            Resource: '*' 
+                                          - Effect: 'Allow'
+                                            Action: 
+                                              - 'ecs:CreateTask' 
+                                              - 'ecs:DescribeTasks' 
+                                              - 'ecs:ListTasks' 
+                                              - 'ecs:StopTask' 
+                                              - 'ecs:DescribeTaskDefinition' 
+                                              - 'ecs:DescribeClusters' 
+                                            Resource: 
+                                              - !GetAtt MyEcsCluster.Arn 
+                                  ManagedPolicyArns:
+                                    - 'arn:aws:iam::aws:policy/AmazonECS_FargateTaskExecution'
+
+                              # ECS Task Definition
+                              MyTaskDefinition:
+                                Type: 'AWS::ECS::TaskDefinition'
+                                Properties:
+                                  Family: 'my-fargate-task' 
+                                  NetworkMode: 'awsvpc'
+                                  ContainerDefinitions:
+                                    - Name: 'my-app-container'
+                                      Image: 'trialvj.jfrog.io/docker-html-local/my-html-app:latest' 
+                                      # Replace with the actual image URI from JFrog Artifactory
+                                      Cpu: 256 
+                                      Memory: 512 
+                                      PortMappings: 
+                                        - ContainerPort: 80 
+                                          HostPort: 80 
+                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn 
+
+                            Outputs:
+                              VpcId:
+                                Value: !Ref MyVpc
+                              SubnetId:
+                                Value: !Ref MyPublicSubnet
+                              ClusterArn:
+                                Value: !GetAtt MyEcsCluster.Arn
+                              TaskDefinitionArn:
+                                Value: !GetAtt MyTaskDefinition.Arn
+                      roleArn: ""
+                  timeout: 10m
