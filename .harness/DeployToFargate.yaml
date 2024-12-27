@@ -76,7 +76,7 @@ pipeline:
                                           Service: 'ecs-tasks.amazonaws.com'
                                         Action: 'sts:AssumeRole'
                                   ManagedPolicyArns:
-                                    - 'arn:aws:iam::aws:policy/AmazonECS_FargateTaskExecution'
+                                    - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
 
                               # ECS Task Definition
                               MyTaskDefinition:
