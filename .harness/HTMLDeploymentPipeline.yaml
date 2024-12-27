@@ -32,6 +32,25 @@ pipeline:
             steps:
               - step:
                   type: Run
+                  name: Build_and_Push_Image
+                  identifier: Build_and_Push_Image
+                  spec:
+                    shell: Sh
+                    command: |-
+                      set -e
+                      export IMAGE_NAME=my-html-app 
+                      docker build -t $IMAGE_NAME . 
+                      IMAGE_ID=$(docker images -q $IMAGE_NAME:latest)
+                      echo "IMAGE_ID: $IMAGE_ID"
+                      JFROG_USERNAME=<+secrets.getValue("jFrog")>
+                      JFROG_PASSWORD=<+secrets.getValue("jfrogPass")>
+                      ARTIFACTORY_TOKEN=<+secrets.getValue("ARTIFACTORY_TOKEN")>
+                      echo "$ARTIFACTORY_TOKEN" | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
+                      docker tag $IMAGE_NAME trialvj.jfrog.io/docker-html-local/my-html-app:latest
+                      docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
+                  description: Build and push docker image to jFrog Artifactory
+              - step:
+                  type: Run
                   name: Build_Docker_Image
                   identifier: Build_Docker_Image
                   spec:
