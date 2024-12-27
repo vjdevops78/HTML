@@ -48,7 +48,7 @@ pipeline:
                       echo "$ARTIFACTORY_TOKEN" | docker login trialvj.jfrog.io --username vjdevops@hotmail.com --password-stdin
                       #docker tag $IMAGE_NAME trialvj.jfrog.io/docker-html-local/my-html-app:latest
                       #docker push trialvj.jfrog.io/docker-html-local/my-html-app:latest
-
-                      docker tag "my-html-app:$IMAGE_ID" trialvj.jfrog.io/docker-html-local/my-html-app:$IMAGE_ID.<+pipeline.execution.uuid>
-                      docker push trialvj.jfrog.io/docker-html-local/my-html-app:$IMAGE_ID.<+pipeline.execution.uuid>
+                      echo "Pipeline Execution UUID: <+pipeline.execution.uuid>"
+                      docker tag "my-html-app:$IMAGE_ID" trialvj.jfrog.io/docker-html-local/my-html-app:$IMAGE_ID
+                      docker push trialvj.jfrog.io/docker-html-local/my-html-app:$IMAGE_ID
                   description: Build and push docker image to jFrog Artifactory
