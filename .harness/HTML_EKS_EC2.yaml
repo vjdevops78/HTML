@@ -3,3 +3,19 @@ service:
   identifier: HTML_EKS_EC2
   orgIdentifier: default
   projectIdentifier: default_project
+  serviceDefinition:
+    spec:
+      artifacts:
+        primary:
+          primaryArtifactRef: <+input>
+          sources:
+            - spec:
+                connectorRef: jFrog_Artifactory
+                artifactPath: <+input>
+                tag: <+input>
+                repository: docker-html-local
+                repositoryFormat: docker
+              identifier: my_html_app
+              type: ArtifactoryRegistry
+    type: Kubernetes
+  description: Deployment of my HTML application to Amazon EKS with EC2 nodes
