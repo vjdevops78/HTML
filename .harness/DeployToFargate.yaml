@@ -73,8 +73,18 @@ pipeline:
                                         Principal:
                                           Service: 'ecs-tasks.amazonaws.com'
                                         Action: 'sts:AssumeRole'
-                                  ManagedPolicyArns:
-                                    - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+                                  Policies:
+                                    - PolicyName: 'JFrogAccessPolicy' 
+                                      PolicyDocument:
+                                        Version: '2012-10-17'
+                                        Statement:
+                                          - Effect: 'Allow'
+                                            Action: 
+                                              - 'ecr:GetAuthorizationToken' 
+                                            Resource: 
+                                              - '*'
+                                  #ManagedPolicyArns:
+                                    #- 'arn:aws:iam::aws:policy/service-role/#AmazonECSTaskExecutionRolePolicy'
 
                               # ECS Cluster
                               MyEcsCluster:
