@@ -105,7 +105,7 @@ pipeline:
                                   ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn
                                   ContainerDefinitions:
                                     - Name: 'my-app-container'
-                                      Image: 'https://trialvj.jfrog.io/artifactory/docker-html-local/my-html-app/1.0.0'
+                                      Image: 'trialvj.jfrog.io/artifactory/docker-html-local/my-html-app:1.0.0'
                                       Cpu: 256
                                       Memory: 512
                                       PortMappings:
