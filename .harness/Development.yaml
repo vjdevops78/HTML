@@ -1,0 +1,6 @@
+environment:
+  name: Development
+  identifier: Development
+  orgIdentifier: default
+  projectIdentifier: default_project
+  type: PreProduction
