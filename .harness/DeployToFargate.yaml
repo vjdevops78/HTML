@@ -102,7 +102,7 @@ pipeline:
                                         - ContainerPort: 80
                                           HostPort: 80
                                       # Add environment variable with secret value
-                                    Environment:
+                                  Environment:
                                       - Name: ARTIFACTORY_TOKEN
                                         ValueFrom: '${harness.secrets.ARTIFACTORY_TOKEN}'
 
