@@ -114,7 +114,7 @@ pipeline:
                                       # Add environment variable with secret value
                                       Environment:
                                         - Name: JFrog_USERNAME
-                                          Value: 'harness'
+                                          Value: 'vjdevops@hotmail.com'
                                         - Name: JFrog_PASSWORD
                                           Value: 'H@rness$jFrog1'
 
