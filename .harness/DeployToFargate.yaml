@@ -116,7 +116,7 @@ pipeline:
                                         - Name: JFrog_USERNAME
                                           Value: 'vjdevops@hotmail.com'
                                         - Name: JFrog_PASSWORD
-                                          Value: 'H@rness$jFrog1'
+                                          Value: <+secrets.getValue("ARTIFACTORY_TOKEN")>
 
                               # ECS Service
                               MyEcsService:
