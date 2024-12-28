@@ -135,3 +135,14 @@ pipeline:
                                       AssignPublicIp: ENABLED
                       roleArn: ""
                   timeout: 30m
+        variables:
+          - name: JFrog_USERNAME
+            type: Secret
+            description: jFrog username secret
+            required: true
+            value: jFrog
+          - name: JFrog_PASSWORD
+            type: Secret
+            description: jFrog password secret
+            required: true
+            value: jfrogPass
