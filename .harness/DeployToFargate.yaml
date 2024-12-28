@@ -114,9 +114,9 @@ pipeline:
                                       # Add environment variable with secret value
                                       Environment:
                                         - Name: JFrog_USERNAME
-                                          Value: '${harness.secrets.jfrog-credentials.username}' 
+                                          Value: <+secrets.getValue("jFrog")> 
                                         - Name: JFrog_PASSWORD
-                                          Value: '${harness.secrets.jfrog-credentials.password}'
+                                          Value: <+secrets.getValue("jFrog")>
 
                               # ECS Service
                               MyEcsService:
