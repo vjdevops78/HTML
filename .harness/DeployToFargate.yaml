@@ -28,7 +28,6 @@ pipeline:
                         type: Inline
                         spec:
                           templateBody: |
-                            AWSTemplateFormatVersion: '2010-09-09'
                             Resources:
                               # VPC
                               MyVpc:
@@ -56,8 +55,12 @@ pipeline:
                                     - IpProtocol: 'tcp'
                                       FromPort: '80'
                                       ToPort: '80'
-                                      # Update this with specific IP addresses or security groups for better security
                                       CidrIp: '0.0.0.0/0'  # Replace with specific allowed IP ranges
+                                  SecurityGroupEgress:
+                                    - IpProtocol: 'tcp'
+                                      FromPort: '443'
+                                      ToPort: '443'
+                                      CidrIp: '0.0.0.0/0'
 
                               # IAM Role for Fargate Tasks
                               FargateTaskExecutionRole:
@@ -114,15 +117,5 @@ pipeline:
                                       SecurityGroups:
                                         - !Ref FargateSecurityGroup
                                       AssignPublicIp: ENABLED
-
-                            Outputs:
-                              VpcId:
-                                Value: !Ref MyVpc
-                              SubnetId:
-                                Value: !Ref MyPublicSubnet
-                              ClusterArn:
-                                Value: !GetAtt MyEcsCluster.Arn
-                              TaskDefinitionArn:
-                                Value: !GetAtt MyTaskDefinition.Arn
                       roleArn: ""
                   timeout: 30m
