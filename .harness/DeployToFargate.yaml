@@ -113,8 +113,10 @@ pipeline:
                                           HostPort: 80
                                       # Add environment variable with secret value
                                       Environment:
-                                        - Name: ARTIFACTORY_TOKEN
-                                          Value: '${harness.secrets.ARTIFACTORY_TOKEN}'
+                                        - Name: JFrog_USERNAME
+                                          Value: '${harness.secrets.jfrog-credentials.username}' 
+                                        - Name: JFrog_PASSWORD
+                                          Value: '${harness.secrets.jfrog-credentials.password}'
 
                               # ECS Service
                               MyEcsService:
