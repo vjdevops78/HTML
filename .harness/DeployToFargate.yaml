@@ -102,9 +102,9 @@ pipeline:
                                         - ContainerPort: 80
                                           HostPort: 80
                                       # Add environment variable with secret value
-                                  Environment:
-                                      - Name: ARTIFACTORY_TOKEN
-                                        ValueFrom: '${harness.secrets.ARTIFACTORY_TOKEN}'
+                                      Environment:
+                                        - Name: ARTIFACTORY_TOKEN
+                                          Value: '${harness.secrets.ARTIFACTORY_TOKEN}'
 
                               # ECS Service
                               MyEcsService:
