@@ -1,0 +1,148 @@
+pipeline:
+  name: DeployToFargate
+  identifier: DeployToFargate
+  projectIdentifier: default_project
+  orgIdentifier: default
+  description: Deploy Docker image from JFrog to AWS Fargate
+  tags: {}
+  stages:
+    - stage:
+        name: DeployToFargate
+        identifier: DeployToFargate
+        description: Provision AWS resources using CloudFormation
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: CreateStack
+                  name: CreateStack_1
+                  identifier: CreateStack_1
+                  spec:
+                    provisionerIdentifier: AWSProvisioner
+                    configuration:
+                      stackName: HTMLStake
+                      connectorRef: AWS
+                      region: us-east-1
+                      templateFile:
+                        type: Inline
+                        spec:
+                          templateBody: |
+                            Resources:
+                              # VPC
+                              MyVpc:
+                                Type: 'AWS::EC2::VPC'
+                                Properties:
+                                  CidrBlock: '10.0.0.0/16'
+                                  EnableDnsSupport: 'true'
+                                  EnableDnsHostnames: 'true'
+
+                              # Public Subnet
+                              MyPublicSubnet:
+                                Type: 'AWS::EC2::Subnet'
+                                Properties:
+                                  VpcId: !Ref MyVpc
+                                  CidrBlock: '10.0.0.0/24'
+                                  MapPublicIpOnLaunch: 'true'
+
+                              # Security Group for Fargate Tasks
+                              FargateSecurityGroup:
+                                Type: 'AWS::EC2::SecurityGroup'
+                                Properties:
+                                  GroupDescription: 'Security Group for Fargate Tasks'
+                                  VpcId: !Ref MyVpc
+                                  SecurityGroupIngress:
+                                    - IpProtocol: 'tcp'
+                                      FromPort: '80'
+                                      ToPort: '80'
+                                      CidrIp: '0.0.0.0/0'  # Replace with specific allowed IP ranges
+                                  SecurityGroupEgress:
+                                    - IpProtocol: 'tcp'
+                                      FromPort: '443'
+                                      ToPort: '443'
+                                      CidrIp: '0.0.0.0/0'
+
+                              # IAM Role for Fargate Tasks
+                              FargateTaskExecutionRole:
+                                Type: 'AWS::IAM::Role'
+                                Properties:
+                                  AssumeRolePolicyDocument:
+                                    Version: '2012-10-17'
+                                    Statement:
+                                      - Effect: 'Allow'
+                                        Principal:
+                                          Service: 'ecs-tasks.amazonaws.com'
+                                        Action: 'sts:AssumeRole'
+                                  Policies:
+                                    - PolicyName: 'JFrogAccessPolicy' 
+                                      PolicyDocument:
+                                        Version: '2012-10-17'
+                                        Statement:
+                                          - Effect: 'Allow'
+                                            Action: 
+                                              - 'ecr:GetAuthorizationToken' 
+                                            Resource: 
+                                              - '*'
+                                  #ManagedPolicyArns:
+                                    #- 'arn:aws:iam::aws:policy/service-role/#AmazonECSTaskExecutionRolePolicy'
+
+                              # ECS Cluster
+                              MyEcsCluster:
+                                Type: 'AWS::ECS::Cluster'
+                                Properties:
+                                  ClusterName: my-fargate-cluster
+
+                              # ECS Task Definition
+                              MyTaskDefinition:
+                                Type: 'AWS::ECS::TaskDefinition'
+                                Properties:
+                                  Family: 'my-fargate-task'
+                                  NetworkMode: 'awsvpc'
+                                  RequiresCompatibilities:
+                                    - FARGATE
+                                  Cpu: '256'
+                                  Memory: '512'
+                                  ExecutionRoleArn: !GetAtt FargateTaskExecutionRole.Arn
+                                  ContainerDefinitions:
+                                    - Name: 'my-app-container'
+                                      Image: 'trialvj.jfrog.io/artifactory/docker-html-local/my-html-app:1.0.0'
+                                      Cpu: 256
+                                      Memory: 512
+                                      PortMappings:
+                                        - ContainerPort: 80
+                                          HostPort: 80
+                                      # Add environment variable with secret value
+                                      Environment:
+                                        - Name: JFrog_USERNAME
+                                          Value: 'vjdevops@hotmail.com'
+                                        - Name: JFrog_PASSWORD
+                                          Value: <+secrets.getValue("ARTIFACTORY_TOKEN")>
+
+                              # ECS Service
+                              MyEcsService:
+                                Type: 'AWS::ECS::Service'
+                                Properties:
+                                  Cluster: !Ref MyEcsCluster
+                                  DesiredCount: 1
+                                  LaunchType: FARGATE
+                                  TaskDefinition: !Ref MyTaskDefinition
+                                  NetworkConfiguration:
+                                    AwsvpcConfiguration:
+                                      Subnets:
+                                        - !Ref MyPublicSubnet
+                                      SecurityGroups:
+                                        - !Ref FargateSecurityGroup
+                                      AssignPublicIp: ENABLED
+                      roleArn: ""
+                  timeout: 30m
+        variables:
+          - name: JFrog_USERNAME
+            type: Secret
+            description: jFrog username secret
+            required: true
+            value: jFrog
+          - name: JFrog_PASSWORD
+            type: Secret
+            description: jFrog password secret
+            required: true
+            value: jfrogPass
