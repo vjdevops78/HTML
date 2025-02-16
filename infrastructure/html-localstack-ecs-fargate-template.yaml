@@ -30,12 +30,23 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           Subnets:
-            - subnet-563a1fa2b8c77a4db
+            - subnet-f6d7698f0004cac6d  # Updated with a valid subnet ID
           SecurityGroups:
             - sg-383899427715f9a6a
           AssignPublicIp: ENABLED
 
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      VpcId: vpc-d0e099ff834ed8ec5  # Specify the VPC ID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
 Outputs:
   EcsServiceUrl:
     Description: "URL of the ECS Service"
-    Value: "http://localhost:80"
+    Value: !Sub "http://${MyService}.localhost.localstack.cloud"
