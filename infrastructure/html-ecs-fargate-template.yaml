@@ -1,0 +1,36 @@
+Resources:
+  MyCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: my-cluster
+
+  MyTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: html-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ContainerDefinitions:
+        - Name: html-container
+          Image: html-docker-image:latest
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+
+  MyService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref MyCluster
+      TaskDefinition: !Ref MyTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - subnet-12345678
+          SecurityGroups:
+            - sg-12345678
+          AssignPublicIp: ENABLED
